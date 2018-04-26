@@ -6,7 +6,7 @@ class PersonalSite
     when '/' then index
     when '/about' then about
     else
-      error
+      render_static_or_error(env['PATH_INFO'])
     end
   end
 
@@ -22,7 +22,19 @@ class PersonalSite
     render_view('error.html', '404')
   end
 
-  def self.render_view(page, code = '200', root_path = 'app/views')
-    [code, {'Content-Type' => 'text/html'}, [File.read("./#{root_path}/#{page}")]]
+  def self.css
+    render_static('main.css')
+  end
+
+  def self.render_view(page, code = '200')
+    [code, {'Content-Type' => 'text/html'}, [File.read("./app/views/#{page}")]]
+  end
+
+  def self.render_static_or_error(asset)
+    path = "./public#{asset}"
+    file = File.exist?(path)
+    ext = File.extname(path)
+    return ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]] if file && ext == '.css'
+    error
   end
 end
