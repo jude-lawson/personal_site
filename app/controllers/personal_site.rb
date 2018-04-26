@@ -5,6 +5,8 @@ class PersonalSite
     case env['PATH_INFO']
     when '/' then index
     when '/about' then about
+    when '/blog' then blog
+    when %r{/blog/\d} then article(env['PATH_INFO'])
     else
       render_static_or_error(env['PATH_INFO'])
     end
@@ -16,6 +18,15 @@ class PersonalSite
 
   def self.about
     render_view('about.html')
+  end
+
+  def self.blog
+    render_view('blog.html')
+  end
+
+  def self.article(path)
+    article_id = path.split("/")[2]
+    render_view("posts/article#{article_id}.html")
   end
 
   def self.error
