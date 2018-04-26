@@ -1,5 +1,6 @@
 require 'erb'
-require 'tilt'
+require 'haml'
+require 'tilt/haml'
 require 'rack'
 
 class PersonalSite
@@ -16,24 +17,24 @@ class PersonalSite
   end
 
   def self.index
-    render_view('index.html')
+    render_view('index.haml')
   end
 
   def self.about
-    render_view('about.html')
+    render_view('about.haml')
   end
 
   def self.blog
-    render_view('blog.html')
+    render_view('blog.haml')
   end
 
   def self.article(path)
-    article_id = path.split("/")[2]
-    render_view("posts/article#{article_id}.html")
+    article_id = path.split('/')[2]
+    render_view("posts/article#{article_id}.haml")
   end
 
   def self.error
-    render_view('posts/error.html', '404')
+    render_view('error.haml', '404')
   end
 
   def self.css
@@ -41,23 +42,21 @@ class PersonalSite
   end
 
   def self.render_view(page, code = '200')
-    template = Tilt.new('./app/views/main_template.erb')
-    file = File.read("./app/views/#{page}")
+    template = Tilt::HamlTemplate.new('./app/views/main_template.haml')
+    file = Haml::Engine.new(File.read("./app/views/#{page}")).render
     [code, { 'Content-Type' => 'text/html' }, [template.render { file }]]
   end
 
   def self.render_static_or_error(asset)
     path = "./public#{asset}"
     file = File.exist?(path)
-    ext = File.extname(path)
+    ext  = File.extname(path)
     if file
       case ext
       when '.css' then ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]]
       end
     else
       error
-    end 
-    # return ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]] if file && ext == '.css'
-    # error
+    end
   end
 end
