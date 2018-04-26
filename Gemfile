@@ -6,3 +6,4 @@ gem "rake"
 gem "capybara"
 gem "launchy"
 gem "rack"
+gem 'tilt'

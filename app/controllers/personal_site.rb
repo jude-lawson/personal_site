@@ -1,17 +1,17 @@
+require 'erb'
+require 'tilt'
 require 'rack'
 
 class PersonalSite
 
   def self.call(env)
-    env['ROOT'] = File.expand_path('../../../', __FILE__)
-    # require 'pry';binding.pry
     case env['PATH_INFO']
     when '/' then index
     when '/about' then about
     when '/blog' then blog
     when %r{/blog/\d} then article(env['PATH_INFO'])
     else
-      render_static_or_error(env)
+      render_static_or_error(env['PATH_INFO'])
     end
   end
 
@@ -41,14 +41,23 @@ class PersonalSite
   end
 
   def self.render_view(page, code = '200')
-    [code, {'Content-Type' => 'text/html'}, [File.read("./app/views/#{page}")]]
+    template = Tilt.new('./app/views/main_template.erb')
+    file = File.read("./app/views/#{page}")
+    [code, { 'Content-Type' => 'text/html' }, [template.render { file }]]
   end
 
-  def self.render_static_or_error(env)
-    path = "#{env['ROOT']}/public#{env['PATH_INFO']}"
+  def self.render_static_or_error(asset)
+    path = "./public#{asset}"
     file = File.exist?(path)
     ext = File.extname(path)
-    return ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]] if file && ext == '.css'
-    error
+    if file
+      case ext
+      when '.css' then ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]]
+      end
+    else
+      error
+    end 
+    # return ['200', { 'Content-Type' => 'text/css' }, [File.read(path)]] if file && ext == '.css'
+    # error
   end
 end
